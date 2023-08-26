@@ -1,0 +1,42 @@
+#!/bin/sh
+#
+# usage: $0 isvm image script
+#
+set -eu
+
+ctn=$(python3 -c 'print(str(__import__("uuid").uuid4()))')
+ctn="ci-${ctn}"
+
+cleanup() {
+        lxc delete -f "${ctn}"
+}
+trap cleanup EXIT HUP INT QUIT TERM
+
+vm=
+[ X = X"${1}" ] || vm="--vm -c security.secureboot=false"
+
+lxc launch ${vm} "${2}" "${ctn}"
+
+# wait for the network
+while :; do
+        n=$(lxc ls "${ctn}" -c4 --format=csv)
+        [ X = X"${n}" ] || break
+        sleep 1
+done
+
+# wait for lxd-agent
+if [ X != X"${1}" ]; then
+        while :; do
+                o=$(lxc exec "${ctn}" -- /usr/bin/env id || :)
+                [ X = X"${o}" ] || break
+                sleep 1
+        done
+fi
+
+lxc exec "${ctn}" -- mkdir /.build
+lxc file push "${3}" "${ctn}/build.sh"
+lxc exec "${ctn}" -- sh -x /build.sh
+lxc exec "${ctn}" -- tar -f- -C /.build/ -c . | tar -f- -x
+
+[ ! -n "${SUDO_UID:-}" ] || chown "${SUDO_UID}" -R -- *
+[ ! -n "${SUDO_GID:-}" ] || chgrp "${SUDO_GID}" -R -- *

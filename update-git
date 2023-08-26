@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+
+PROJBASE=$(d=$(dirname -- "${0}"); cd "${d}" && pwd)
+
+cd "${PROJBASE}"
+exec git pull
