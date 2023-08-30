@@ -37,6 +37,7 @@ lxc exec "${ctn}" -- mkdir /.build
 lxc file push "${3}" "${ctn}/build.sh"
 lxc exec "${ctn}" -- sh -x /build.sh
 lxc exec "${ctn}" -- tar -f- -C /.build/ -c . | tar -f- -x
+rm -f "${3}"
 
-[ ! -n "${SUDO_UID:-}" ] || chown "${SUDO_UID}" -R -- *
-[ ! -n "${SUDO_GID:-}" ] || chgrp "${SUDO_GID}" -R -- *
+[ ! -n "${SUDO_UID:-}" ] || chown "${SUDO_UID}" -R -- .
+[ ! -n "${SUDO_GID:-}" ] || chgrp "${SUDO_GID}" -R -- .
