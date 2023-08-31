@@ -15,7 +15,9 @@ trap cleanup EXIT HUP INT QUIT TERM
 vm=
 [ X = X"${1}" ] || vm="--vm -c security.secureboot=false"
 
-lxc launch ${vm} "${2}" "${ctn}"
+lxc init ${vm} "${2}" "${ctn}"
+lxc config device add "${ctn}" workspace source=$(pwd) path=/workspace
+lxc start "${ctn}"
 
 # wait for the network
 while :; do
@@ -33,11 +35,9 @@ if [ X != X"${1}" ]; then
         done
 fi
 
-lxc exec "${ctn}" -- mkdir /.build
-lxc file push "${3}" "${ctn}/build.sh"
+lxc file push build.sh "${ctn}/build.sh"
 lxc exec "${ctn}" -- sh -x /build.sh
-lxc exec "${ctn}" -- tar -f- -C /.build/ -c . | tar -f- -x
-rm -f "${3}"
+rm -f build.sh
 
 [ ! -n "${SUDO_UID:-}" ] || chown "${SUDO_UID}" -R -- .
 [ ! -n "${SUDO_GID:-}" ] || chgrp "${SUDO_GID}" -R -- .
