@@ -16,7 +16,7 @@ vm=
 [ X = X"${1}" ] || vm="--vm -c security.secureboot=false"
 
 lxc init ${vm} "${2}" "${ctn}"
-lxc config device add "${ctn}" workspace source=$(pwd) path=/workspace
+lxc config device add "${ctn}" workspace disk source=$(pwd) path=/workspace
 lxc start "${ctn}"
 
 # wait for the network
