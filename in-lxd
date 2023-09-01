@@ -17,6 +17,7 @@ vm=
 
 lxc init ${vm} "${2}" "${ctn}"
 lxc config device add "${ctn}" workspace disk source=$(pwd) path=/workspace
+lxc config set "${ctn}" raw.idmap "both $(stat -c %u .) 0"
 lxc start "${ctn}"
 
 # wait for the network
